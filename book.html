@@ -18,28 +18,28 @@ body {
   color: #5A4D38;
   font-family: 'Hoefler Text', 'Iowan Old Style', Georgia, serif;
   min-height: 100vh;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 a { color: inherit; text-decoration: none; }
 .date-block { text-align: center; margin: 40px 0 30px; }
-.weekday { font-size: 11px; letter-spacing: 5px; opacity: 0.55; margin-bottom: 10px; }
-.date { font-size: 22px; font-weight: 300; letter-spacing: 1px; }
-.orn { text-align: center; font-size: 11px; opacity: 0.35; letter-spacing: 8px; margin: 26px 0; }
-.sec { font-size: 11px; letter-spacing: 4px; text-align: center; opacity: 0.55; margin-bottom: 14px; font-weight: 300; }
-.toc { font-size: 14.5px; line-height: 2.2; }
+.weekday { font-size: 12px; letter-spacing: 5px; opacity: 0.55; margin-bottom: 10px; }
+.date { font-size: 24px; font-weight: 300; letter-spacing: 1px; }
+.orn { text-align: center; font-size: 12px; opacity: 0.35; letter-spacing: 8px; margin: 26px 0; }
+.sec { font-size: 12px; letter-spacing: 4px; text-align: center; opacity: 0.55; margin-bottom: 14px; font-weight: 300; }
+.toc { font-size: 15.5px; line-height: 2.2; }
 .toc a { display: flex; align-items: baseline; overflow: hidden; }
 .toc .item, .toc .num { flex: none; white-space: nowrap; }
 .toc .dots { flex: 1; overflow: hidden; white-space: nowrap; opacity: 0.35; margin: 0 6px; letter-spacing: 2px; }
-.tdisp { text-align: center; font-size: 22px; font-weight: 300; letter-spacing: 1px; margin-top: 6px; }
-.tlabel { text-align: center; font-size: 11px; opacity: 0.5; letter-spacing: 3px; margin-top: 6px; }
+.tdisp { text-align: center; font-size: 24px; font-weight: 300; letter-spacing: 1px; margin-top: 6px; }
+.tlabel { text-align: center; font-size: 12px; opacity: 0.5; letter-spacing: 3px; margin-top: 6px; }
 .tbtn-wrap { text-align: center; margin-top: 14px; }
 .tbtn {
-  padding: 7px 18px;
+  padding: 8px 20px;
   border: 0.5px solid currentColor;
   border-radius: 1px;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 3px;
   opacity: 0.85;
   background: transparent;
@@ -49,7 +49,7 @@ a { color: inherit; text-decoration: none; }
   -webkit-appearance: none;
 }
 .marg {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.9;
   font-style: italic;
   opacity: 0.85;
@@ -67,13 +67,13 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
 }
 .marg-ts {
-  font-size: 10px;
+  font-size: 11px;
   opacity: 0.4;
   letter-spacing: 2px;
   text-align: right;
   margin-top: 8px;
 }
-.pn { text-align: center; font-size: 11px; opacity: 0.4; letter-spacing: 6px; margin-top: 30px; }
+.pn { text-align: center; font-size: 12px; opacity: 0.4; letter-spacing: 6px; margin-top: 30px; }
 </style>
 </head>
 <body>
@@ -82,6 +82,19 @@ a { color: inherit; text-decoration: none; }
   <div class="weekday" id="weekday">SUNDAY</div>
   <div class="date" id="date">19 April</div>
 </div>
+
+<div class="orn">· · ·</div>
+
+<div class="sec">study</div>
+<div class="tdisp" id="tdisp">0 min</div>
+<div class="tlabel" id="tlabel">TODAY</div>
+<div class="tbtn-wrap"><button class="tbtn" id="tbtn">BEGIN</button></div>
+
+<div class="orn">· · ·</div>
+
+<div class="sec">marginalia</div>
+<div class="marg" id="marg" contenteditable="true"></div>
+<div class="marg-ts" id="marg-ts"></div>
 
 <div class="orn">· · ·</div>
 
@@ -98,19 +111,6 @@ a { color: inherit; text-decoration: none; }
 
 <div class="sec">reading</div>
 <div class="toc"><a href="shortcuts://run-shortcut?name=OpenSubstack"><span class="item">Substack</span><span class="dots">....................................................</span><span class="num">viii</span></a></div>
-
-<div class="orn">· · ·</div>
-
-<div class="sec">study</div>
-<div class="tdisp" id="tdisp">0 min</div>
-<div class="tlabel" id="tlabel">TODAY</div>
-<div class="tbtn-wrap"><button class="tbtn" id="tbtn">BEGIN</button></div>
-
-<div class="orn">· · ·</div>
-
-<div class="sec">marginalia</div>
-<div class="marg" id="marg" contenteditable="true"></div>
-<div class="marg-ts" id="marg-ts"></div>
 
 <div class="pn">· i ·</div>
 
@@ -177,6 +177,13 @@ marg.textContent = localStorage.getItem('marg-text') || '';
 var savedTs = localStorage.getItem('marg-ts-val');
 if (savedTs) margTs.textContent = 'saved ' + savedTs;
 updateEmpty();
+
+document.addEventListener('click', function(e) {
+  if (!marg.contains(e.target)) marg.blur();
+});
+marg.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.shiftKey) { e.preventDefault(); marg.blur(); }
+});
 
 var saveT = null;
 marg.addEventListener('input', function() {
