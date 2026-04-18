@@ -26,20 +26,20 @@ a { color: inherit; text-decoration: none; }
 .date-block { text-align: center; margin: 40px 0 30px; }
 .weekday { font-size: 12px; letter-spacing: 5px; opacity: 0.55; margin-bottom: 10px; }
 .date { font-size: 24px; font-weight: 300; letter-spacing: 1px; }
+.clock { font-size: 13px; font-style: italic; opacity: 0.5; letter-spacing: 2px; margin-top: 10px; }
 .orn { text-align: center; font-size: 12px; opacity: 0.35; letter-spacing: 8px; margin: 26px 0; }
 .sec { font-size: 12px; letter-spacing: 4px; text-align: center; opacity: 0.55; margin-bottom: 14px; font-weight: 300; }
 .toc { font-size: 15.5px; line-height: 2.2; }
 .toc a { display: flex; align-items: baseline; overflow: hidden; }
 .toc .item, .toc .num { flex: none; white-space: nowrap; }
 .toc .dots { flex: 1; overflow: hidden; white-space: nowrap; opacity: 0.35; margin: 0 6px; letter-spacing: 2px; }
-.tdisp { text-align: center; font-size: 24px; font-weight: 300; letter-spacing: 1px; margin-top: 6px; }
-.tlabel { text-align: center; font-size: 12px; opacity: 0.5; letter-spacing: 3px; margin-top: 6px; }
-.tbtn-wrap { text-align: center; margin-top: 14px; }
+.tstatus { text-align: center; font-size: 14px; letter-spacing: 2px; opacity: 0.7; margin-bottom: 14px; font-style: italic; }
+.tbtn-wrap { text-align: center; }
 .tbtn {
-  padding: 8px 20px;
+  padding: 6px 18px;
   border: 0.5px solid currentColor;
   border-radius: 1px;
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 3px;
   opacity: 0.85;
   background: transparent;
@@ -72,6 +72,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 2px;
   text-align: right;
   margin-top: 8px;
+  min-height: 14px;
 }
 .pn { text-align: center; font-size: 12px; opacity: 0.4; letter-spacing: 6px; margin-top: 30px; }
 </style>
@@ -81,13 +82,13 @@ a { color: inherit; text-decoration: none; }
 <div class="date-block">
   <div class="weekday" id="weekday">SUNDAY</div>
   <div class="date" id="date">19 April</div>
+  <div class="clock" id="clock">00:00</div>
 </div>
 
 <div class="orn">· · ·</div>
 
 <div class="sec">study</div>
-<div class="tdisp" id="tdisp">0 min</div>
-<div class="tlabel" id="tlabel">TODAY</div>
+<div class="tstatus"><span id="tlabel">today</span> · <span id="tdisp">0 min</span></div>
 <div class="tbtn-wrap"><button class="tbtn" id="tbtn">BEGIN</button></div>
 
 <div class="orn">· · ·</div>
@@ -115,15 +116,18 @@ a { color: inherit; text-decoration: none; }
 <div class="pn">· i ·</div>
 
 <script>
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+
 function updateDate() {
   var d = new Date();
   var w = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
   var m = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('weekday').textContent = w[d.getDay()];
   document.getElementById('date').textContent = d.getDate() + ' ' + m[d.getMonth()];
+  document.getElementById('clock').textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 updateDate();
-setInterval(updateDate, 60000);
+setInterval(updateDate, 30000);
 
 var btn = document.getElementById('tbtn');
 var disp = document.getElementById('tdisp');
@@ -131,7 +135,7 @@ var lbl = document.getElementById('tlabel');
 function todayKey() { var d = new Date(); return 'study-' + d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate(); }
 function getTotal() { return parseInt(localStorage.getItem(todayKey()) || '0', 10); }
 function fMin(s) { return Math.floor(s / 60) + ' min'; }
-function fRun(s) { var m = Math.floor(s/60), sec = s%60; return m + ':' + (sec<10?'0':'') + sec; }
+function fRun(s) { var m = Math.floor(s/60), sec = s%60; return m + ':' + pad(sec); }
 
 var sStart = parseInt(localStorage.getItem('session-start') || '0', 10);
 var tInt = null;
@@ -140,11 +144,11 @@ function render() {
   if (sStart > 0) {
     var e = Math.floor((Date.now() - sStart) / 1000);
     disp.textContent = fRun(e);
-    lbl.textContent = 'STUDYING';
+    lbl.textContent = 'studying';
     btn.textContent = 'END';
   } else {
     disp.textContent = fMin(getTotal());
-    lbl.textContent = 'TODAY';
+    lbl.textContent = 'today';
     btn.textContent = 'BEGIN';
   }
 }
@@ -169,13 +173,18 @@ render();
 
 var marg = document.getElementById('marg');
 var margTs = document.getElementById('marg-ts');
+
 function updateEmpty() {
-  if (marg.textContent.trim() === '') marg.classList.add('empty');
-  else marg.classList.remove('empty');
+  var empty = marg.textContent.trim() === '';
+  marg.classList.toggle('empty', empty);
+  if (empty) margTs.textContent = '';
 }
+
 marg.textContent = localStorage.getItem('marg-text') || '';
-var savedTs = localStorage.getItem('marg-ts-val');
-if (savedTs) margTs.textContent = 'saved ' + savedTs;
+if (marg.textContent.trim() !== '') {
+  var savedTs = localStorage.getItem('marg-ts-val');
+  if (savedTs) margTs.textContent = 'saved ' + savedTs;
+}
 updateEmpty();
 
 document.addEventListener('click', function(e) {
@@ -190,12 +199,18 @@ marg.addEventListener('input', function() {
   updateEmpty();
   if (saveT) clearTimeout(saveT);
   saveT = setTimeout(function() {
-    localStorage.setItem('marg-text', marg.textContent);
-    var d = new Date();
-    var h = d.getHours(), mi = d.getMinutes();
-    var ts = (h<10?'0':'') + h + ':' + (mi<10?'0':'') + mi;
-    localStorage.setItem('marg-ts-val', ts);
-    margTs.textContent = 'saved ' + ts;
+    var txt = marg.textContent;
+    if (txt.trim() === '') {
+      localStorage.removeItem('marg-text');
+      localStorage.removeItem('marg-ts-val');
+      margTs.textContent = '';
+    } else {
+      localStorage.setItem('marg-text', txt);
+      var d = new Date();
+      var ts = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      localStorage.setItem('marg-ts-val', ts);
+      margTs.textContent = 'saved ' + ts;
+    }
   }, 1500);
 });
 </script>
